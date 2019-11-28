@@ -49,6 +49,7 @@ private:
     pthread_mutex_t m_mutex[4];
 public:
     Traffic();  // default constructor 
+    Traffic(std::string directions);
     ~Traffic();     // destructor
 
 

@@ -9,21 +9,21 @@
  * m2: acquires the second mutex
  * leave: the car leaves the crossing, at the opposite side
  */
-enum State { waiting, arrive, m1, m2, leave };
+enum class State { waiting, arrive, m1, m2, leave, count };
 
-enum Direction { north, east, west, south, dir_count };
+enum class Direction { north, east, west, south, count };
 
-enum Mutex { a, b, c, d, mutex_count};
+enum class Mutex { a, b, c, d, count};
 
 Direction char2direction(char char_dir)
 {
     switch(char_dir)
     {
-        case 'n': return north; break;
-        case 'e': return east; break;
-        case 's': return south; break;
-        case 'w': return west; break;
-        default: return Direction::dir_count;
+        case 'n': return Direction::north; 
+        case 'e': return Direction::east;
+        case 's': return Direction::south; 
+        case 'w': return Direction::west;
+        default: return Direction::count;
     }
 }
 

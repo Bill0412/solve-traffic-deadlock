@@ -4,6 +4,11 @@
 #include <pthread.h>
 // class Traffic;
 
+Traffic()
+{
+
+}
+
 Traffic::Traffic(std::string directions)
     :
     m_index(0)
@@ -29,7 +34,7 @@ void Traffic::m_generate_cars(std::string directions)
     {
         Car* car = new Car(m_get_index(), char_dir, m_mutex, *this);
         m_push_car(car);
-    }
+    }   
     
 }  
 
@@ -89,7 +94,7 @@ void Traffic::m_push_car(Car* car)
 {
     auto direction = car->get_direction();
 
-    m_roads[direction]->push_car(car);
+    m_roads[direction]->push_car(*car);
 }
 
 Road& Traffic::get_road(Direction direction)

@@ -1,11 +1,10 @@
 #include <iostream>
 #include "traffic.h"
-#include "car.h"
 
 int main(int argc, char** argv)
 {
-    Traffic traffic(std::string(argv[1]));
-    
+    std::string car_series = argv[1];
+    Traffic traffic(car_series);
 
     return 0;
 }

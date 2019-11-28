@@ -10,12 +10,38 @@ Road::Road(Direction direction)
      
 }
 
+void Road::push_car(Car& car)
+{
+    m_queue.push(car);
+}
+
+Car& Road::pop_car()
+{
+    return m_queue.pop();
+}
+
 bool Road::is_first_car_arrived()
 {
     Car& first_car = m_queue.front;
-    if(!first_car) 
+    if(m_queue.empty()) 
     {
         return false;
     }
     return (State::arrive == first_car->state);
+}
+
+bool Road::is_road_empty()
+{
+    return m_queue.empty();
+}
+
+
+void Road::set_first_priority()
+{
+    if(is_road_empty()) 
+    {
+        return;
+    }
+
+    m_queue.front().set_first_priority();
 }

@@ -6,7 +6,7 @@
 #include <pthread.h>
 class Traffic;
 class Road;
-// a car is a running thread of car
+
 class Car {
 private:
     Direction m_direction;    // which direction the car is from

@@ -8,7 +8,7 @@ Car::Car()
 {
 }
 
-Car::Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mutexes, State state=waiting)
+Car::Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mutexes, State state=State::waiting)
 {
     this->m_index = index;
     this->m_direction = direction;
@@ -24,7 +24,7 @@ Car::Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mute
     m_run();
 }
 
-Car::Car(int index, char char_dir, Traffic& traffic, pthread_mutex_t* mutexes, State state=waiting)
+Car::Car(int index, char char_dir, Traffic& traffic, pthread_mutex_t* mutexes, State state=State::waiting)
 {
     Car(index, m_char2direction(char_dir), traffic, mutexes, state);
 }
@@ -40,10 +40,10 @@ std::string Car::m_get_str_direction()
 {
     switch(m_direction)
     {
-        case north: return "North"; break;
-        case east: return "East"; break;
-        case south: return "South"; break;
-        case west: return "West"; break;
+        case Direction::north: return "North"; break;
+        case Direction::east: return "East"; break;
+        case Direction::south: return "South"; break;
+        case Direction::west: return "West"; break;
         default: return "Error: m_get_direction"; break;
     }
 }
@@ -52,8 +52,8 @@ std::string Car::m_get_str_state()
 {
     switch(m_state) 
     {
-        case arrive: return "arrives"; break;
-        case leave: return "leaving"; break;
+        case State::arrive: return "arrives"; break;
+        case State::leave: return "leaving"; break;
         default: return "Error: m_get_state"; break;
     }
 }
@@ -72,11 +72,11 @@ void Car::m_init_required_mutexes()
 {
     switch(m_direction)
     {
-        case north: m_set_mutex12(c, d); break;
-        case east:  m_set_mutex12(b, c); break;
-        case south: m_set_mutex12(a, b); break;
-        case west:  m_set_mutex12(d, a); break;
-        case dir_count: break;
+        case Direction::north: m_set_mutex12(Mutex::c, Mutex::d); break;
+        case Direction::east:  m_set_mutex12(Mutex::b, Mutex::c); break;
+        case Direction::south: m_set_mutex12(Mutex::a, Mutex::b); break;
+        case Direction::west:  m_set_mutex12(Mutex::d, Mutex::a); break;
+        case Direction::count: break;
         default: break;
     }
 }
@@ -85,13 +85,14 @@ void Car::m_set_mutex12(Mutex mutex1, Mutex mutex2)
 {
     m_mutex1 = mutex1;
     m_mutex2 = mutex2;
-    m_pthread_mutex1 = m_mutexes[mutex1];
-    m_pthread_mutex2 = m_mutexes[mutex2];
+    m_pthread_mutex1 = m_mutexes[static_cast<int>(mutex1)];
+    m_pthread_mutex2 = m_mutexes[static_cast<int>(mutex2)];
 }
 
 bool Car::m_is_rhs_empty()
 {
-    Direction rhs_direction = static_cast<Direction>((m_direction + dir_count - 1) % dir_count);
+    int count = static_cast<int>(Direction::count);
+    Direction rhs_direction = static_cast<Direction>((static_cast<int>(m_direction) + count - 1) % count);
     Road& rhs_road = m_traffic->get_road(rhs_direction);
     return rhs_road.is_road_empty();
 }
@@ -130,7 +131,7 @@ State Car::set_state(State state)
 
 bool Car::is_arrived()
 {
-    return (m_get_state() == arrive);
+    return (m_get_state() == State::arrive);
 }
 
 bool Car::is_just_arrived()
@@ -215,13 +216,13 @@ void* Car::static_ptr_car_handler(void* args)
             {
                 // if no car at the right hand side, try get mutex1
                 car->lock_mutex1();
-                car->set_state(m1);
+                car->set_state(State::m1);
                 // then try get mutex2
                 car->lock_mutex2();
                 car->unlock_mutex1();
-                car->set_state(m2);
+                car->set_state(State::m2);
                 car->unlock_mutex2();
-                car->set_state(leave);
+                car->set_state(State::leave);
                 car->display_state();
                 break;
             }
