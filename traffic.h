@@ -8,10 +8,11 @@
 class Traffic
 {
 private:
-    Road* m_roads[4];  // north, east, south, west roads
+    Road** m_roads;  // north, east, south, west roads
     int m_index;  // the overall counter for car indices.
-
-    // mutexes for 4 Quardrants
+    
+    // 4 sections at the crossing
+    pthread_mutex_t m_mutex[4];
 
     // pids
     pthread_t m_pid_car_generator;
@@ -27,14 +28,10 @@ private:
     //      one of these cars should get an instruction
     // 3. leave car thread collector
     // 
-    void m_init_traffic();
+    void m_init_traffic(std::string directions);
 
     // generate cars continously
     // void* m_generate_car_thread();
-
-    // deadlock detector thread
-    void* m_deadlock_detector_thread();
-    bool m_is_all_first_cars_arrived();
 
     // leaving car collector, should be handled by road threads
     // void* m_leaving_car_collector_thread();
@@ -43,10 +40,9 @@ private:
     int m_get_index();
 
     // add a new car to the traffic, according to the direction
-    void m_push_car(Car* ptr_car, Direction direction);
+    void m_push_car(Car* ptr_car);
 
-    // 4 sections at the crossing
-    pthread_mutex_t m_mutex[4];
+    
 public:
     Traffic();  // default constructor 
     Traffic(std::string directions);
@@ -60,6 +56,10 @@ public:
 
     Road& get_road(Direction direction);
 
+    // deadlock detector thread
+    static void* deadlock_detector_thread(void* args);
+    bool is_all_first_cars_arrived();
+    void set_first_priority(Direction direction);
     
 };
 

@@ -17,17 +17,19 @@ void Road::push_car(Car& car)
 
 Car& Road::pop_car()
 {
-    return m_queue.pop();
+    Car& car = m_queue.front();
+    m_queue.pop();
+    return car;
 }
 
 bool Road::is_first_car_arrived()
 {
-    Car& first_car = m_queue.front;
+    Car& first_car = m_queue.front();
     if(m_queue.empty()) 
     {
         return false;
     }
-    return (State::arrive == first_car->state);
+    return (State::arrive == first_car.get_state());
 }
 
 bool Road::is_road_empty()

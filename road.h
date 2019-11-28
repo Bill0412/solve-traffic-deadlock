@@ -15,6 +15,7 @@ private:
 
 public:
     Road(Direction direction);
+    ~Road();
     void push_car(Car& car);
     Car& pop_car();
 

@@ -58,8 +58,8 @@ private:
     bool m_reset_is_first_priority();
 public:
     Car(); // default constructor
-    Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mutexes, State state);
-    Car(int index, char char_dir, Traffic& traffic, pthread_mutex_t* mutexes, State state);
+    Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mutexes, State state=State::waiting);
+    Car(int index, char char_dir, Traffic& traffic, pthread_mutex_t* mutexes, State state=State::waiting);
 
     Direction get_direction();
     // Direction set_direction();

@@ -8,7 +8,7 @@ Car::Car()
 {
 }
 
-Car::Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mutexes, State state=State::waiting)
+Car::Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mutexes, State state)
 {
     this->m_index = index;
     this->m_direction = direction;
@@ -24,7 +24,7 @@ Car::Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mute
     m_run();
 }
 
-Car::Car(int index, char char_dir, Traffic& traffic, pthread_mutex_t* mutexes, State state=State::waiting)
+Car::Car(int index, char char_dir, Traffic& traffic, pthread_mutex_t* mutexes, State state)
 {
     Car(index, m_char2direction(char_dir), traffic, mutexes, state);
 }
