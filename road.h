@@ -12,6 +12,7 @@ class Road
 private:
     Direction m_direction;
     std::queue <Car> m_queue;
+    pthread_t m_pid;
 
 public:
     Road(Direction direction);
@@ -20,11 +21,14 @@ public:
     Car& pop_car();
 
     bool is_first_car_arrived();
+    void set_first_car_arrived();
 
     bool is_road_empty();
 
     void set_first_priority();
     
+    static void* road_event_handler(void* args);
+
 };
 
 #endif

@@ -1,5 +1,6 @@
 #ifndef _COMMON_H
 #define _COMMON_H
+#define DEBUG 1
 /*
  * State: the states of the car
  * ---------------------------------------------------

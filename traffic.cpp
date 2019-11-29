@@ -27,7 +27,7 @@ Traffic::~Traffic()
 
 void Traffic::m_generate_cars(std::string directions)
 {
-    for(char char_dir : directions)
+    for(char const &char_dir : directions)
     {
         Car* car = new Car(m_get_index(), char_dir, *this, m_mutex);
         m_push_car(car);
@@ -62,16 +62,22 @@ void Traffic::m_init_traffic(std::string directions)
     // leave car thread collector
     // pthread_create(&m_pid_leaving_car_collector, NULL, m_leaving_car_collector_thread, NULL);
 
-    pthread_join(m_pid_deadlock_detector, NULL);
+    // pthread_join(m_pid_deadlock_detector, NULL);
+    pthread_create(&m_pid_traffic_end_detector, NULL, traffic_end_detector, this);
+
+    pthread_join(m_pid_traffic_end_detector, NULL);
 }
 
 void* Traffic::deadlock_detector_thread(void* args)
 {
     Traffic* traffic = static_cast<Traffic*>(args);
-    if(traffic->is_all_first_cars_arrived()) {
-        // send signal to the north car to go first
-        // maybe later set priority in turns
-        traffic->set_first_priority(Direction::north);
+    while(true)
+        {
+            if(traffic->is_all_first_cars_arrived()) {
+            // send signal to the north car to go first
+            // maybe later set priority in turns
+            traffic->set_first_priority(Direction::north);
+        }
     }
 }
 
@@ -109,4 +115,26 @@ bool Traffic::is_all_first_cars_arrived()
 void Traffic::set_first_priority(Direction direction)
 {
     m_roads[static_cast<int>(direction)]->set_first_priority();
+}
+
+
+void* Traffic::traffic_end_detector(void* args)
+{
+    Traffic* traffic = static_cast<Traffic*>(args);
+
+    // wait until all the cars have gone through the crossing
+    while(!traffic->is_all_roads_empty());
+}
+
+bool Traffic::is_all_roads_empty()
+{
+    for(int i = 0; i < 4; i++)
+    {
+        Road* road = m_roads[i];
+        if(!road->is_road_empty())
+        {
+            return false;
+        }
+    }
+    return true;
 }

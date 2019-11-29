@@ -18,10 +18,14 @@ Car::Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mute
     this->m_is_first_priority = false;
     this->m_is_just_arrived = true;
     this->m_mutexes = mutexes;
+    this->m_has_entered_m1 = false;
 
     m_init_required_mutexes();
 
     m_run();
+#if DEBUG
+    std::cout << "Car " << m_index << " is created in the direction of " << m_get_str_direction() << std::endl;
+#endif
 }
 
 Car::Car(int index, char char_dir, Traffic& traffic, pthread_mutex_t* mutexes, State state)
@@ -32,7 +36,7 @@ Car::Car(int index, char char_dir, Traffic& traffic, pthread_mutex_t* mutexes, S
 int Car::m_run()
 {
     int res = pthread_create(&m_pid, NULL, static_ptr_car_handler, this);
-    pthread_join(m_pid, NULL);
+    // pthread_join(m_pid, NULL);
     return res;
 }
 
@@ -87,6 +91,11 @@ void Car::m_set_mutex12(Mutex mutex1, Mutex mutex2)
     m_mutex2 = mutex2;
     m_pthread_mutex1 = m_mutexes[static_cast<int>(mutex1)];
     m_pthread_mutex2 = m_mutexes[static_cast<int>(mutex2)];
+}
+
+void Car::m_set_has_entered_m1()
+{
+    m_has_entered_m1 = true;
 }
 
 bool Car::m_is_rhs_empty()
@@ -192,6 +201,16 @@ void Car::unlock_mutex2()
     pthread_mutex_unlock(&m_pthread_mutex2);
 }
 
+bool Car::get_has_entered_m1()
+{
+    return m_has_entered_m1;
+}
+
+void Car::set_has_entered_m1()
+{
+    m_set_has_entered_m1();
+}
+
 void* Car::static_ptr_car_handler(void* args)
 {
     while(true) 
@@ -199,8 +218,13 @@ void* Car::static_ptr_car_handler(void* args)
         // firstly waiting(do nothing)
         Car* car = static_cast<Car*>(args);
         // when arrive, see if there's car at the right hand side 
+        
         if(car->is_arrived())
         {
+#if DEBUG
+            std::cout << "Car " << car->get_index() << " is arrived.\n";
+            car->display_state();  
+#endif
             if(car->is_just_arrived())
             {
                 car->display_state();
@@ -217,6 +241,7 @@ void* Car::static_ptr_car_handler(void* args)
                 // if no car at the right hand side, try get mutex1
                 car->lock_mutex1();
                 car->set_state(State::m1);
+                car->set_has_entered_m1();
                 // then try get mutex2
                 car->lock_mutex2();
                 car->unlock_mutex1();
@@ -229,4 +254,9 @@ void* Car::static_ptr_car_handler(void* args)
         }
     }
     
+}
+
+int Car::get_index()
+{
+    return m_index;
 }

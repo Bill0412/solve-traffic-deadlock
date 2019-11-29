@@ -18,6 +18,7 @@ private:
     pthread_t m_pid_car_generator;
     pthread_t m_pid_deadlock_detector;
     pthread_t m_pid_leaving_car_collector;
+    pthread_t m_pid_traffic_end_detector;
 
     // generate cars according to user input
     void m_generate_cars(std::string directions);
@@ -41,8 +42,7 @@ private:
 
     // add a new car to the traffic, according to the direction
     void m_push_car(Car* ptr_car);
-
-    
+ 
 public:
     Traffic();  // default constructor 
     Traffic(std::string directions);
@@ -61,6 +61,9 @@ public:
     bool is_all_first_cars_arrived();
     void set_first_priority(Direction direction);
     
+    // if no cars in all the roads, the traffic should end.
+    static void* traffic_end_detector(void* args);
+    bool is_all_roads_empty();
 };
 
 #endif

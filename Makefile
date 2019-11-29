@@ -1,5 +1,5 @@
 CXX = g++
-CXXFLAGS = -Wall -g -std=c++11 -Wno-reorder -lpthread
+CXXFLAGS = -Wall -g -std=c++11 -Wno-reorder -pthread
 
 objects = main.o traffic.o road.o car.o common.o
 .PHONY: main

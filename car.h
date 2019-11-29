@@ -35,6 +35,7 @@ private:
 
     // for mark if the car is firstly arrived at the crossing
     bool m_is_just_arrived;
+    bool m_has_entered_m1;
 
     int m_run();
 
@@ -49,6 +50,8 @@ private:
     // set the required mutexes later
     void m_init_required_mutexes();
     void m_set_mutex12(Mutex mutex1, Mutex mutex2);
+    
+    void m_set_has_entered_m1();
 
     // see if the right hand side of the car is empty
     bool m_is_rhs_empty();
@@ -88,10 +91,16 @@ public:
     void lock_mutex2();
     void unlock_mutex2();
 
+    bool get_has_entered_m1();
+    void set_has_entered_m1();
+
     // this is thr run thread of the car
     // all the possible behaviors of the car should be handled here
     // car event handler
     static void *static_ptr_car_handler(void* args);
+
+    // for debug
+    int get_index();
 };
 
 void test_car();
