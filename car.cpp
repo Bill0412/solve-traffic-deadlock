@@ -104,11 +104,12 @@ bool Car::m_is_rhs_not_arrived()
     int count = static_cast<int>(Direction::count);
     Direction rhs_direction = static_cast<Direction>((static_cast<int>(m_direction) + count - 1) % count);
     Road& rhs_road = m_traffic->get_road(rhs_direction);
-    if(rhs_road.is_road_empty())
+    Car* front_car = rhs_road.get_ptr_front_car();
+    if(!front_car)
     {
         return true;
     }
-    return !rhs_road.get_front_car().is_arrived();
+    return !(front_car->is_arrived());
 }
 
 bool Car::m_get_is_first_priority()

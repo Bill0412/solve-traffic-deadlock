@@ -100,13 +100,22 @@ void* Traffic::deadlock_detector_thread(void* args)
                 Direction direction = Direction::north;
 
                 // wait until all arrives signalled
+                // what if a left side car is ready to go, and then a right car of the left appears?
                 while(!traffic->all_arrives_signalled());
                 // signal deadlock when the deadlock is not signaled before
                 // judge with a deadlock state, store indices of
                 // the deadlock car pairs.
-                traffic->signal_deadlock(direction);
 
-                traffic->set_first_priority(direction);
+                // double check if this is a real deadlock
+                if(traffic->is_all_first_cars_arrived())
+                {
+
+                    traffic->signal_deadlock(direction);
+
+                    traffic->set_first_priority(direction);
+                }
+                
+
 
                 traffic->reset_all_arrives_signalled();
 
@@ -217,6 +226,12 @@ bool Traffic::all_arrives_signalled()
 {
     for(int i = 0; i < static_cast<int>(Direction::count); i++)
     {
+        if(!(m_roads[i]->get_ptr_front_car()))
+        {
+            // if one of the cars left, go out of he trap
+            return true;
+        }
+
         if(!(m_roads[i]->get_ptr_front_car()->is_arrive_signalled()))
         {
             return false;
@@ -229,7 +244,12 @@ void Traffic::reset_all_arrives_signalled()
 {
     for(int i = 0; i < static_cast<int>(Direction::count); i++)
     {
-        m_roads[i]->get_ptr_front_car()->reset_arrive_signalled();
+        Car* front_car = m_roads[i]->get_ptr_front_car();
+        if(!front_car)
+        {
+            continue;
+        }
+        front_car->reset_arrive_signalled();
     }
 }
 
