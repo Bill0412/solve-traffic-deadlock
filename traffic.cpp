@@ -197,7 +197,12 @@ bool Traffic::is_different_deadlock_situation()
     std::vector<int> deadlock_state = {};
     for(int i = 0; i < static_cast<int>(Direction::count); i++)
     {
-        deadlock_state.push_back(m_roads[i]->get_ptr_front_car()->get_index());
+        Car* front_car = m_roads[i]->get_ptr_front_car();
+        if(!front_car) 
+        {
+            return false;   
+        }
+        deadlock_state.push_back(front_car->get_index());
     }
     std::sort(deadlock_state.begin(), deadlock_state.end());
     bool is_diff = (m_prev_deadlock_state != deadlock_state);
