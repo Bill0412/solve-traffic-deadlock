@@ -11,3 +11,15 @@ Direction char2direction(char char_dir)
         default: return Direction::count;
     }
 }
+
+std::string dir2str(Direction dir)
+{
+    switch(dir)
+    {
+        case Direction::north: return "North"; break;
+        case Direction::east: return "East"; break;
+        case Direction::south: return "South"; break;
+        case Direction::west: return "West"; break;
+        default: return "Error: dir2str"; break;
+    }
+}

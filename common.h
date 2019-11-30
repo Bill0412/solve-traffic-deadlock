@@ -1,6 +1,9 @@
 #ifndef _COMMON_H
 #define _COMMON_H
 #define DEBUG 1
+
+#include <string>
+
 /*
  * State: the states of the car
  * ---------------------------------------------------
@@ -12,10 +15,12 @@
  */
 enum class State { waiting, arrive, m1, m2, leave, count };
 
-enum class Direction { north, east, west, south, count };
+enum class Direction { north, east, south, west, count };
 
 enum class Mutex { a, b, c, d, count};
 
 Direction char2direction(char char_dir);
+
+std::string dir2str(Direction dir);
 
 #endif

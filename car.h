@@ -27,6 +27,8 @@ private:
     // 
     pthread_mutex_t* m_mutexes;
 
+    pthread_mutex_t m_state_mutex;
+
     // if the car is prioritized to go
     bool m_is_first_priority;
 
@@ -38,8 +40,6 @@ private:
     bool m_has_entered_m1;
 
     int m_run();
-
-    
 
     Direction m_char2direction(char char_dir);
     std::string m_get_str_direction();
@@ -54,7 +54,7 @@ private:
     void m_set_has_entered_m1();
 
     // see if the right hand side of the car is empty
-    bool m_is_rhs_empty();
+    bool m_is_rhs_not_arrived();
 
     void m_set_is_first_priority();
     bool m_get_is_first_priority();
@@ -83,13 +83,18 @@ public:
     void set_first_priority();
     bool is_first_priority();
 
-    bool is_rhs_empty();
+    bool is_rhs_not_arrived();
+    bool has_left_road();
 
     // mutex operations
     void lock_mutex1();
     void unlock_mutex1();
     void lock_mutex2();
     void unlock_mutex2();
+
+    // state mutex
+    void lock_state_mutex();
+    void unlock_state_mutex();
 
     bool get_has_entered_m1();
     void set_has_entered_m1();
@@ -98,6 +103,7 @@ public:
     // all the possible behaviors of the car should be handled here
     // car event handler
     static void *static_ptr_car_handler(void* args);
+    Road& get_road();
 
     // for debug
     int get_index();

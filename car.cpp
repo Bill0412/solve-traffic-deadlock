@@ -20,6 +20,8 @@ Car::Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mute
     this->m_mutexes = mutexes;
     this->m_has_entered_m1 = false;
 
+    pthread_mutex_init(&m_state_mutex, NULL);
+
     m_init_required_mutexes();
 
     m_run();
@@ -29,8 +31,10 @@ Car::Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mute
 }
 
 Car::Car(int index, char char_dir, Traffic& traffic, pthread_mutex_t* mutexes, State state)
+    :
+    Car(index, m_char2direction(char_dir), traffic, mutexes, state)
 {
-    Car(index, m_char2direction(char_dir), traffic, mutexes, state);
+    
 }
 
 int Car::m_run()
@@ -42,14 +46,7 @@ int Car::m_run()
 
 std::string Car::m_get_str_direction()
 {
-    switch(m_direction)
-    {
-        case Direction::north: return "North"; break;
-        case Direction::east: return "East"; break;
-        case Direction::south: return "South"; break;
-        case Direction::west: return "West"; break;
-        default: return "Error: m_get_direction"; break;
-    }
+    return dir2str(m_direction);
 }
 
 std::string Car::m_get_str_state()
@@ -98,12 +95,16 @@ void Car::m_set_has_entered_m1()
     m_has_entered_m1 = true;
 }
 
-bool Car::m_is_rhs_empty()
+bool Car::m_is_rhs_not_arrived()
 {
     int count = static_cast<int>(Direction::count);
     Direction rhs_direction = static_cast<Direction>((static_cast<int>(m_direction) + count - 1) % count);
     Road& rhs_road = m_traffic->get_road(rhs_direction);
-    return rhs_road.is_road_empty();
+    if(rhs_road.is_road_empty())
+    {
+        return true;
+    }
+    return !rhs_road.get_front_car().is_arrived();
 }
 
 bool Car::m_get_is_first_priority()
@@ -133,8 +134,10 @@ State Car::get_state()
 
 State Car::set_state(State state)
 {
+    lock_state_mutex();
     State prev_state = this->m_state;
     this->m_state = state;
+    unlock_state_mutex();
     return prev_state;
 }
 
@@ -176,9 +179,14 @@ bool Car::is_first_priority()
     return m_get_is_first_priority();
 }
 
-bool Car::is_rhs_empty()
+bool Car::is_rhs_not_arrived()
 {
-    return m_is_rhs_empty();
+    return m_is_rhs_not_arrived();
+}
+
+bool Car::has_left_road()
+{
+    return (m_state != State::arrive && m_state != State::waiting);
 }
 
 void Car::lock_mutex1()
@@ -201,6 +209,16 @@ void Car::unlock_mutex2()
     pthread_mutex_unlock(&m_pthread_mutex2);
 }
 
+void Car::lock_state_mutex()
+{
+    pthread_mutex_lock(&m_state_mutex);
+}
+
+void Car::unlock_state_mutex()
+{
+    pthread_mutex_unlock(&m_state_mutex);
+}
+
 bool Car::get_has_entered_m1()
 {
     return m_has_entered_m1;
@@ -217,13 +235,15 @@ void* Car::static_ptr_car_handler(void* args)
     {
         // firstly waiting(do nothing)
         Car* car = static_cast<Car*>(args);
+        // car manipulate road behavior here
+        Road& road = car->get_road();
         // when arrive, see if there's car at the right hand side 
         
         if(car->is_arrived())
         {
 #if DEBUG
-            std::cout << "Car " << car->get_index() << " is arrived.\n";
-            car->display_state();  
+            // std::cout << "Car " << car->get_index() << " is arrived.\n";
+            // car->display_state();  
 #endif
             if(car->is_just_arrived())
             {
@@ -231,7 +251,7 @@ void* Car::static_ptr_car_handler(void* args)
                 car->reset_is_just_arrived();
             }
             
-            if(car->is_rhs_empty()) 
+            if(car->is_rhs_not_arrived()) 
             {
                 car->set_first_priority();
             }
@@ -249,11 +269,17 @@ void* Car::static_ptr_car_handler(void* args)
                 car->unlock_mutex2();
                 car->set_state(State::leave);
                 car->display_state();
+                
                 break;
             }
         }
     }
     
+}
+
+Road& Car::get_road()
+{
+    return m_traffic->get_road(m_direction);
 }
 
 int Car::get_index()

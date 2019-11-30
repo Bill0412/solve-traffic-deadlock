@@ -5,6 +5,8 @@
 #include "road.h"
 #include "common.h"
 
+#include <vector>
+
 class Traffic
 {
 private:
@@ -13,6 +15,11 @@ private:
     
     // 4 sections at the crossing
     pthread_mutex_t m_mutex[4];
+
+    bool m_roads_initialized;
+
+    // store the previous deadlock car indices
+    std::vector<int> m_prev_deadlock_state;
 
     // pids
     pthread_t m_pid_car_generator;
@@ -43,6 +50,7 @@ private:
     // add a new car to the traffic, according to the direction
     void m_push_car(Car* ptr_car);
  
+    void m_set_roads_initialized();
 public:
     Traffic();  // default constructor 
     Traffic(std::string directions);
@@ -64,6 +72,10 @@ public:
     // if no cars in all the roads, the traffic should end.
     static void* traffic_end_detector(void* args);
     bool is_all_roads_empty();
+
+    // signal deadlock
+    void signal_deadlock(Direction direction);
+    bool is_different_deadlock_situation();
 };
 
 #endif

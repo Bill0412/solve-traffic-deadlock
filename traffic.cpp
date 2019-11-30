@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 #include <pthread.h>
+#include <iostream>
+#include <algorithm>
 // class Traffic;
 
 Traffic::Traffic()
@@ -11,7 +13,9 @@ Traffic::Traffic()
 
 Traffic::Traffic(std::string directions)
     :
-    m_index(0)
+    m_index(0),
+    m_roads_initialized(false),
+    m_prev_deadlock_state({0, 0, 0, 0})
 {
     m_pid_car_generator = NULL;
     m_pid_deadlock_detector = NULL;
@@ -55,12 +59,16 @@ void Traffic::m_init_traffic(std::string directions)
     // get the cars from input
     m_generate_cars(directions);
 
+    // set roads initialized
+    m_set_roads_initialized();
+
     // deadlock detector thread, when all the 4 cars arrive at the intersection simultaneously
     //      one of these cars should get an instruction to take action to avoid deadlock
     pthread_create(&m_pid_deadlock_detector, NULL, deadlock_detector_thread, this);
 
     // leave car thread collector
     // pthread_create(&m_pid_leaving_car_collector, NULL, m_leaving_car_collector_thread, NULL);
+    // done in road.cpp
 
     // pthread_join(m_pid_deadlock_detector, NULL);
     pthread_create(&m_pid_traffic_end_detector, NULL, traffic_end_detector, this);
@@ -74,9 +82,21 @@ void* Traffic::deadlock_detector_thread(void* args)
     while(true)
         {
             if(traffic->is_all_first_cars_arrived()) {
-            // send signal to the north car to go first
-            // maybe later set priority in turns
-            traffic->set_first_priority(Direction::north);
+
+            // get the current deadlock state(the indices of the cars)
+            if(traffic->is_different_deadlock_situation())
+            {
+                // send signal to the north car to go first
+                // maybe later set priority in turns
+                Direction direction = Direction::north;
+
+                traffic->set_first_priority(direction);
+
+                // signal deadlock when the deadlock is not signaled before
+                // judge with a deadlock state, store indices of
+                // the deadlock car pairs.
+                traffic->signal_deadlock(direction);
+            }
         }
     }
 }
@@ -91,6 +111,16 @@ void Traffic::m_push_car(Car* car)
     auto direction = car->get_direction();
 
     m_roads[static_cast<int>(direction)]->push_car(*car);
+}
+
+void Traffic::m_set_roads_initialized()
+{
+    for(int i = 0; i < static_cast<int>(Direction::count); i++)
+    {
+        m_roads[i]->set_is_initialized();
+    }
+
+    m_roads_initialized = true;
 }
 
 Road& Traffic::get_road(Direction direction)
@@ -137,4 +167,25 @@ bool Traffic::is_all_roads_empty()
         }
     }
     return true;
+}
+
+void Traffic::signal_deadlock(Direction direction)
+{
+    std::cout << "DEADLOCK: car jam detected, singalling " << dir2str(direction) << " to go\n";
+}
+
+bool Traffic::is_different_deadlock_situation()
+{
+    std::vector<int> deadlock_state = {};
+    for(int i = 0; i < static_cast<int>(Direction::count); i++)
+    {
+        deadlock_state.push_back(m_roads[i]->get_ptr_front_car()->get_index());
+    }
+    std::sort(deadlock_state.begin(), deadlock_state.end());
+    bool is_diff = (m_prev_deadlock_state != deadlock_state);
+    if(is_diff) 
+    {
+        m_prev_deadlock_state = deadlock_state;
+    }
+    return is_diff;
 }
