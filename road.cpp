@@ -38,12 +38,14 @@ Car& Road::pop_car()
 
 bool Road::is_first_car_arrived()
 {
-    Car* first_car = m_queue.front();
-    if(m_queue.empty()) 
-    {
-        return false;
-    }
-    return (State::arrive == first_car->get_state());
+    
+    // if(!m_queue.front()) 
+    // {
+    //     return false;
+    // }
+
+    // return (State::arrive == m_queue.front()->get_state());
+    return m_is_set_arrive_locked;
 }
 
 void Road::set_first_car_arrived()
