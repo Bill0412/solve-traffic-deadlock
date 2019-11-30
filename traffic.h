@@ -10,16 +10,18 @@
 class Traffic
 {
 private:
-    Road** m_roads;  // north, east, south, west roads
+    std::vector<Road*> m_roads;  // north, east, south, west roads
     int m_index;  // the overall counter for car indices.
     
     // 4 sections at the crossing
     pthread_mutex_t m_mutex[4];
+    pthread_mutex_t m_console_mutex;
 
     bool m_roads_initialized;
 
     // store the previous deadlock car indices
     std::vector<int> m_prev_deadlock_state;
+    bool m_is_stall;    // stall all the car threads if a deadlock happens
 
     // pids
     pthread_t m_pid_car_generator;
@@ -76,6 +78,17 @@ public:
     // signal deadlock
     void signal_deadlock(Direction direction);
     bool is_different_deadlock_situation();
+    bool all_arrives_signalled();
+    void reset_all_arrives_signalled();
+
+    // console mutex
+    void lock_console_mutex();
+    void unlock_console_mutex();
+
+    // stall
+    bool get_is_stall();
+    bool set_is_stall();
+    bool reset_is_stall();
 };
 
 #endif

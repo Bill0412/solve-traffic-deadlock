@@ -32,6 +32,9 @@ private:
     // if the car is prioritized to go
     bool m_is_first_priority;
 
+    //
+    bool m_is_arrive_signalled;
+
     // the ancestor traffic the car is in
     Traffic* m_traffic;
 
@@ -104,10 +107,14 @@ public:
     // car event handler
     static void *static_ptr_car_handler(void* args);
     Road& get_road();
+    Traffic& get_traffic();
 
-    // for debug
     int get_index();
+
+    bool is_arrive_signalled();
+    void set_arrive_signalled();
+    void reset_arrive_signalled();
 };
 
-void test_car();
+
 #endif

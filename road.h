@@ -16,6 +16,8 @@ private:
     pthread_t m_pid;
     bool m_is_initialized;
 
+    bool m_is_set_arrive_locked;
+
 public:
     Road(Direction direction);
     ~Road();
@@ -43,6 +45,7 @@ public:
     void set_is_initialized();
     bool get_is_initialized();
 
+    void unlock_set_arrive();
 };
 
 #endif

@@ -19,6 +19,7 @@ Car::Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mute
     this->m_is_just_arrived = true;
     this->m_mutexes = mutexes;
     this->m_has_entered_m1 = false;
+    this->m_is_arrive_signalled = false;
 
     pthread_mutex_init(&m_state_mutex, NULL);
 
@@ -53,8 +54,11 @@ std::string Car::m_get_str_state()
 {
     switch(m_state) 
     {
-        case State::arrive: return "arrives"; break;
-        case State::leave: return "leaving"; break;
+        case State::arrive: return "arrives at"; break;
+        case State::leave: return "is leaving"; break;
+        case State::m1: return "m1"; break;
+        case State::m2: return "m2"; break;
+        case State::waiting: return "waiting"; break;
         default: return "Error: m_get_state"; break;
     }
 }
@@ -135,8 +139,8 @@ State Car::get_state()
 State Car::set_state(State state)
 {
     lock_state_mutex();
-    State prev_state = this->m_state;
-    this->m_state = state;
+    State prev_state = m_state;
+    m_state = state;
     unlock_state_mutex();
     return prev_state;
 }
@@ -163,10 +167,12 @@ void Car::reset_is_just_arrived()
 
 void Car::display_state()
 {
+    m_traffic->lock_console_mutex();
     std::cout << "car " 
         << m_index << " from " 
         << m_get_str_direction() << " "
-        << m_get_str_state() << " at crossing\n";
+        << m_get_str_state() << " crossing\n";
+    m_traffic->unlock_console_mutex();
 }
 
 void Car::set_first_priority()
@@ -245,20 +251,23 @@ void* Car::static_ptr_car_handler(void* args)
             // std::cout << "Car " << car->get_index() << " is arrived.\n";
             // car->display_state();  
 #endif
+
             if(car->is_just_arrived())
             {
                 car->display_state();
+                car->set_arrive_signalled();
                 car->reset_is_just_arrived();
             }
             
-            if(car->is_rhs_not_arrived()) 
-            {
-                car->set_first_priority();
-            }
+            // if(car->is_rhs_not_arrived()) 
+            // {
+            //     car->set_first_priority();
+            // }
 
-            if(car->is_first_priority())
+            if(!(car->get_traffic().get_is_stall()) && (car->is_rhs_not_arrived() || car->is_first_priority()))
             {
                 // if no car at the right hand side, try get mutex1
+                car->set_state(State::count);   // avoid misjudge
                 car->lock_mutex1();
                 car->set_state(State::m1);
                 car->set_has_entered_m1();
@@ -269,6 +278,8 @@ void* Car::static_ptr_car_handler(void* args)
                 car->unlock_mutex2();
                 car->set_state(State::leave);
                 car->display_state();
+                
+                // std::cout << "Quited thread of car " << car->get_index() << std::endl; 
                 
                 break;
             }
@@ -282,7 +293,27 @@ Road& Car::get_road()
     return m_traffic->get_road(m_direction);
 }
 
+ Traffic& Car::get_traffic()
+ {
+    return *m_traffic;
+ }
+
 int Car::get_index()
 {
     return m_index;
+}
+
+bool Car::is_arrive_signalled()
+{
+    return m_is_arrive_signalled;
+}
+
+void Car::set_arrive_signalled()
+{
+    m_is_arrive_signalled = true;
+}
+
+void Car::reset_arrive_signalled()
+{
+    m_is_arrive_signalled = true;
 }

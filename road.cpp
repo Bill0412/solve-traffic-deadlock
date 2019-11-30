@@ -5,7 +5,8 @@
 
 Road::Road(Direction direction)
     :
-    m_is_initialized(false)
+    m_is_initialized(false),    
+    m_is_set_arrive_locked(false)
 { 
     m_direction = direction;
 
@@ -15,6 +16,11 @@ Road::Road(Direction direction)
 #if DEBUG
     std::cout << "Road Created.\n";
 #endif
+}
+
+Road::~Road()
+{
+
 }
 
 void Road::push_car(Car& car)
@@ -42,7 +48,11 @@ bool Road::is_first_car_arrived()
 
 void Road::set_first_car_arrived()
 {
-    m_queue.front()->set_state(State::arrive);
+    if(!m_is_set_arrive_locked)
+    {
+        m_queue.front()->set_state(State::arrive);
+        m_is_set_arrive_locked = true;
+    }
 }
 
 bool Road::is_road_empty()
@@ -81,6 +91,7 @@ void* Road::road_event_handler(void* args)
         if(front_car && front_car->has_left_road())
         {
             road->push_delete_queue(road->pop_car());
+            road->unlock_set_arrive();
         }
 
         // make the first car the arrived car if road is not empty
@@ -89,13 +100,15 @@ void* Road::road_event_handler(void* args)
 #if DEBUG
         // std::cout << "Road is not empty.\n";
 #endif
-            road->set_first_car_arrived();
-
+           // if(!(road->get_front_car().has_left_road()))
+           // {
+                road->set_first_car_arrived();
+          //  }
         }        
 
         // garbage collection
         // remove the cars in the to be deleted queue that have already left
-        road->delete_left_car();
+        // road->delete_left_car();
 
         // if all the cars are initialized the road is empty
         if(road->is_delete_queue_empty() & road->is_road_empty())
@@ -147,3 +160,8 @@ bool Road::get_is_initialized()
 {
     return m_is_initialized;
 }
+
+ void Road::unlock_set_arrive()
+ {
+     m_is_set_arrive_locked = false;
+ }
