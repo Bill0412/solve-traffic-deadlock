@@ -18,6 +18,7 @@ private:
     pthread_mutex_t m_console_mutex;
 
     bool m_roads_initialized;
+    Direction m_priority_direction;
 
     // store the previous deadlock car indices
     std::vector<int> m_prev_deadlock_state;
@@ -53,6 +54,7 @@ private:
     void m_push_car(Car* ptr_car);
  
     void m_set_roads_initialized();
+
 public:
     Traffic();  // default constructor 
     Traffic(std::string directions);
@@ -89,6 +91,8 @@ public:
     bool get_is_stall();
     bool set_is_stall();
     bool reset_is_stall();
+
+    Direction get_priority_direction();
 };
 
 #endif

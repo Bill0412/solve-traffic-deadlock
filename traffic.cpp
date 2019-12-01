@@ -15,7 +15,8 @@ Traffic::Traffic(std::string directions)
     :
     m_index(0),
     m_roads_initialized(false),
-    m_prev_deadlock_state({0, 0, 0, 0})
+    m_prev_deadlock_state({0, 0, 0, 0}),
+    m_priority_direction(Direction::west)
 {
     m_pid_car_generator = NULL;
     m_pid_deadlock_detector = NULL; 
@@ -97,7 +98,7 @@ void* Traffic::deadlock_detector_thread(void* args)
 
                 // send signal to the north car to go first
                 // maybe later set priority in turns
-                Direction direction = Direction::north;
+                Direction direction = traffic->get_priority_direction();
 
                 // wait until all arrives signalled
                 // what if a left side car is ready to go, and then a right car of the left appears?
@@ -109,6 +110,7 @@ void* Traffic::deadlock_detector_thread(void* args)
                 // double check if this is a real deadlock
                 if(traffic->is_all_first_cars_arrived())
                 {
+                    while(!traffic->all_arrives_signalled());
 
                     traffic->signal_deadlock(direction);
 
@@ -276,4 +278,9 @@ bool Traffic::set_is_stall()
 bool Traffic::reset_is_stall()
 {
     m_is_stall = false;
+}
+
+Direction Traffic::get_priority_direction()
+{
+    return (m_priority_direction = static_cast<Direction>((static_cast<int>(m_priority_direction) + 1) % static_cast<int>(Direction::count)));
 }
