@@ -20,7 +20,8 @@ Car::Car(int index, Direction direction, Traffic& traffic, pthread_mutex_t* mute
     this->m_mutexes = mutexes;
     this->m_has_entered_m1 = false;
     this->m_is_arrive_signalled = false;
-
+    this->m_hungary_count = 0;
+    
     pthread_mutex_init(&m_state_mutex, NULL);
 
     m_init_required_mutexes();
@@ -105,11 +106,13 @@ bool Car::m_is_rhs_not_arrived()
     Direction rhs_direction = static_cast<Direction>((static_cast<int>(m_direction) + count - 1) % count);
     Road& rhs_road = m_traffic->get_road(rhs_direction);
     Car* front_car = rhs_road.get_ptr_front_car();
-    if(!front_car)
+    if(!front_car && rhs_road.is_road_empty() || m_hungary_count > 5)
     {
+        m_hungary_count = 0;
         return true;
     }
-    return !(front_car->is_arrived());
+    m_hungary_count++;
+    return false;
 }
 
 bool Car::m_get_is_first_priority()

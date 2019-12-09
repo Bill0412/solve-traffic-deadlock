@@ -16,6 +16,8 @@ private:
     
     pthread_t m_pid;
 
+    int m_hungary_count;
+
     // mutex required later
     Mutex m_mutex1;
     Mutex m_mutex2;
