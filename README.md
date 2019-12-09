@@ -2,6 +2,10 @@
 ## Introduction
 This is the project 1-1 of my OS course at ZJU.
 
+### Features
+- Deaclock free
+- Hungry free
+
 ## How to use this program
 This program is tested on Ubuntu 18.04 LTS.
 
